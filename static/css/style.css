@@ -44,6 +44,14 @@ body {
     white-space: nowrap;
 }
 
+.drag-handle {
+    cursor: grab;
+}
+
+.instruction-item.dragging {
+    opacity: 0.5;
+}
+
 /* Import page */
 pre {
     border-radius: 8px;

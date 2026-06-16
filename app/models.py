@@ -15,10 +15,11 @@ class DifficultyLevel(str, Enum):
 
 class Recipe(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str 
+    title: str
     description: str
     ingredients: List[str]
-    instructions: str
+    instructions: List[str]
+    cuisine: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
     difficulty: DifficultyLevel
     created_at: datetime = Field(default_factory=datetime.now)
@@ -29,7 +30,8 @@ class RecipeCreate(BaseModel):
     title: str
     description: str
     ingredients: List[str]
-    instructions: str
+    instructions: List[str]
+    cuisine: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
     difficulty: DifficultyLevel
 
@@ -38,6 +40,7 @@ class RecipeUpdate(BaseModel):
     title: str
     description: str
     ingredients: List[str]
-    instructions: str
+    instructions: List[str]
+    cuisine: Optional[str] = None
     tags: List[str]
     difficulty: DifficultyLevel

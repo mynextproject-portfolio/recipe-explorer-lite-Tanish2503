@@ -50,6 +50,27 @@ def test_recipe_not_found(client, clean_storage):
     assert response.status_code == 404
 
 
+def test_create_recipe_preserves_instruction_order_and_cuisine(client, clean_storage, sample_recipe_data):
+    """Contract test: instructions stay ordered and cuisine round-trips"""
+    create_response = client.post("/api/recipes", json=sample_recipe_data)
+    recipe = create_response.json()
+    assert recipe["instructions"] == sample_recipe_data["instructions"]
+    assert recipe["cuisine"] == sample_recipe_data["cuisine"]
+
+
+def test_home_page_filters_by_cuisine(client, clean_storage, sample_recipe_data):
+    """Smoke test: cuisine query param filters the home page recipe list"""
+    client.post("/api/recipes", json=sample_recipe_data)
+
+    response = client.get("/?cuisine=Italian")
+    assert response.status_code == 200
+    assert "Test Recipe" in response.text
+
+    response = client.get("/?cuisine=Mexican")
+    assert response.status_code == 200
+    assert "Test Recipe" not in response.text
+
+
 def test_recipe_pages_load(client, clean_storage, sample_recipe_data):
     """Smoke test: Recipe HTML pages load without error"""
     # Create a recipe first

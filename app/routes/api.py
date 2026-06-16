@@ -10,17 +10,14 @@ router = APIRouter(prefix="/api")
 
 
 @router.get("/recipes")
-def get_recipes(search: Optional[str] = None):
-    """Get all recipes or search by title"""
+def get_recipes(search: Optional[str] = None, cuisine: Optional[str] = None):
+    """Get all recipes, optionally filtered by title search and/or cuisine"""
     # TODO: Add pagination when we have more than 100 recipes
-    if search:
-        recipes = recipe_storage.search_recipes(search)
-    else:
-        recipes = recipe_storage.get_all_recipes()
-    
+    recipes = recipe_storage.search_recipes(search, cuisine)
+
     # Log for debugging (remove in production)
     print(f"Returning {len(recipes)} recipes")
-    
+
     return {"recipes": recipes}
 
 
