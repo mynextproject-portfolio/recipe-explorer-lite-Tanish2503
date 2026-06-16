@@ -11,9 +11,15 @@
 <!-- Search Form -->
 <div class="row mb-4">
     <div class="col-md-8">
-        <form method="get" action="/" class="d-flex">
-            <input class="form-control me-2" type="search" name="search" 
+        <form method="get" action="/" class="d-flex gap-2">
+            <input class="form-control" type="search" name="search"
                    placeholder="Search recipes by title..." value="{{ search_query }}">
+            <select class="form-select" name="cuisine" style="max-width: 220px;">
+                <option value="">All Cuisines</option>
+                {% for cuisine_option in cuisines %}
+                <option value="{{ cuisine_option }}" {% if selected_cuisine == cuisine_option %}selected{% endif %}>{{ cuisine_option }}</option>
+                {% endfor %}
+            </select>
             <button class="btn btn-outline-primary" type="submit">Search</button>
         </form>
     </div>
@@ -25,12 +31,14 @@
 </div>
 
 <!-- Search Results Info -->
-{% if search_query %}
+{% if search_query or selected_cuisine %}
 <div class="row mb-3">
     <div class="col-12">
         <div class="alert alert-light">
-            Found {{ recipes|length }} recipe(s) for "{{ search_query }}"
-            <a href="/" class="btn btn-sm btn-outline-secondary ms-2">Clear Search</a>
+            Found {{ recipes|length }} recipe(s)
+            {% if search_query %}for "{{ search_query }}"{% endif %}
+            {% if selected_cuisine %}in <strong>{{ selected_cuisine }}</strong> cuisine{% endif %}
+            <a href="/" class="btn btn-sm btn-outline-secondary ms-2">Clear Filters</a>
         </div>
     </div>
 </div>
@@ -48,6 +56,9 @@
                     <div class="mb-2">
                         <small class="text-muted">
                             <strong>Difficulty:</strong> <span class="badge bg-{% if recipe.difficulty == 'Easy' %}success{% elif recipe.difficulty == 'Medium' %}warning{% else %}danger{% endif %}">{{ recipe.difficulty }}</span>
+                            {% if recipe.cuisine %}
+                            <a href="/?cuisine={{ recipe.cuisine }}" class="badge bg-info text-dark text-decoration-none ms-1">{{ recipe.cuisine }}</a>
+                            {% endif %}
                         </small>
                     </div>
                     {% if recipe.tags %}

@@ -45,8 +45,21 @@
             </div>
             
             <div class="mb-3">
+                <label for="cuisine" class="form-label">Cuisine / Region</label>
+                <input type="text" class="form-control" id="cuisine" name="cuisine"
+                       value="{% if recipe and recipe.cuisine %}{{ recipe.cuisine }}{% endif %}"
+                       list="cuisine-suggestions"
+                       placeholder="e.g. Italian, Mexican, Southeast Asian">
+                <datalist id="cuisine-suggestions">
+                    {% for cuisine_option in cuisines %}
+                    <option value="{{ cuisine_option }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div class="mb-3">
                 <label for="tags" class="form-label">Tags (comma-separated)</label>
-                <input type="text" class="form-control" id="tags" name="tags" 
+                <input type="text" class="form-control" id="tags" name="tags"
                        value="{% if recipe %}{{ recipe.tags|join(', ') }}{% endif %}"
                        placeholder="e.g. vegetarian, quick, healthy">
             </div>
@@ -84,9 +97,37 @@
             
             <!-- Instructions Section -->
             <div class="mb-4">
-                <label for="instructions" class="form-label">Instructions</label>
-                <textarea class="form-control" id="instructions" name="instructions" rows="8" required 
-                          placeholder="Enter complete cooking instructions...">{% if recipe %}{{ recipe.instructions }}{% endif %}</textarea>
+                <label class="form-label">Instructions</label>
+                <div class="form-text mb-2">Drag the handle (⠿) to reorder steps.</div>
+                <div id="instructions-container">
+                    {% if recipe and recipe.instructions %}
+                        {% for step in recipe.instructions %}
+                        <div class="instruction-item mb-2" draggable="true">
+                            <div class="input-group">
+                                <span class="input-group-text drag-handle" title="Drag to reorder">⠿</span>
+                                <span class="input-group-text step-number">{{ loop.index }}</span>
+                                <textarea class="form-control instruction-input" rows="2" required>{{ step }}</textarea>
+                                <button type="button" class="btn btn-outline-danger remove-instruction">Remove</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="instruction-item mb-2" draggable="true">
+                            <div class="input-group">
+                                <span class="input-group-text drag-handle" title="Drag to reorder">⠿</span>
+                                <span class="input-group-text step-number">1</span>
+                                <textarea class="form-control instruction-input" rows="2"
+                                          placeholder="Enter instruction step..." required></textarea>
+                                <button type="button" class="btn btn-outline-danger remove-instruction">Remove</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" id="add-instruction" class="btn btn-outline-primary btn-sm">
+                    + Add Step
+                </button>
+                <!-- Hidden field to submit ordered instruction steps as JSON -->
+                <textarea name="instructions" id="instructions-data" style="display: none;"></textarea>
             </div>
             
             <!-- Submit Buttons -->
@@ -114,6 +155,15 @@ document.querySelector('form').addEventListener('submit', function(e) {
         }
     });
     document.getElementById('ingredients-data').value = ingredients.join('\n');
+
+    // Collect instructions, in their current (possibly reordered) DOM order
+    const steps = [];
+    document.querySelectorAll('.instruction-input').forEach(textarea => {
+        if (textarea.value.trim()) {
+            steps.push(textarea.value.trim());
+        }
+    });
+    document.getElementById('instructions-data').value = JSON.stringify(steps);
 });
 </script>
 {% endblock %}

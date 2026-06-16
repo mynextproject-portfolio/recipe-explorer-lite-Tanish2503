@@ -16,17 +16,22 @@ class RecipeStorage:
     def get_recipe(self, recipe_id: str) -> Optional[Recipe]:
         return self.recipes.get(recipe_id)
     
-    def search_recipes(self, query: str) -> List[Recipe]:
-        if not query:
-            return self.get_all_recipes()
-        
-        # Case-insensitive title search
-        query_lower = query.lower()
-        results = []
-        for recipe in self.recipes.values():
-            if query_lower in recipe.title.lower():
-                results.append(recipe)
+    def search_recipes(self, query: Optional[str] = None, cuisine: Optional[str] = None) -> List[Recipe]:
+        results = self.get_all_recipes()
+
+        if query:
+            query_lower = query.lower()
+            results = [r for r in results if query_lower in r.title.lower()]
+
+        if cuisine:
+            cuisine_lower = cuisine.lower()
+            results = [r for r in results if r.cuisine and r.cuisine.lower() == cuisine_lower]
+
         return results
+
+    def get_distinct_cuisines(self) -> List[str]:
+        cuisines = {recipe.cuisine for recipe in self.recipes.values() if recipe.cuisine}
+        return sorted(cuisines)
     
     def create_recipe(self, recipe_data: RecipeCreate) -> Recipe:
         recipe = Recipe(**recipe_data.model_dump())
@@ -38,7 +43,7 @@ class RecipeStorage:
             return None
         
         recipe = self.recipes[recipe_id]
-        updated_data = recipe_data.dict()
+        updated_data = recipe_data.model_dump()
         for key, value in updated_data.items():
             setattr(recipe, key, value)
         recipe.updated_at = datetime.now()
@@ -64,6 +69,12 @@ class RecipeStorage:
                     recipe_dict['created_at'] = datetime.fromisoformat(recipe_dict['created_at'])
                 if 'updated_at' in recipe_dict:
                     recipe_dict['updated_at'] = datetime.fromisoformat(recipe_dict['updated_at'])
+
+                # Handle legacy single-string instructions (split into steps by blank line)
+                if isinstance(recipe_dict.get('instructions'), str):
+                    recipe_dict['instructions'] = [
+                        step.strip() for step in recipe_dict['instructions'].split('\n\n') if step.strip()
+                    ]
                 
                 recipe = Recipe(**recipe_dict)
                 self.recipes[recipe.id] = recipe
